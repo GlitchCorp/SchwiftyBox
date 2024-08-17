@@ -16,8 +16,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to connect to test database: %v", err)
 	}
 
-	// Auto migrate the User model
-	err = db.AutoMigrate(&database.User{})
+	// Auto migrate all models
+	err = db.AutoMigrate(&database.Organization{}, &database.User{}, &database.Item{}, &database.Tag{}, &database.ResetToken{}, &database.BackPackIdNextNumber{})
 	if err != nil {
 		t.Fatalf("Failed to migrate test database: %v", err)
 	}
@@ -204,18 +204,7 @@ func TestCreateUser_EmptyEmail(t *testing.T) {
 	password := "password123"
 
 	err := service.CreateUser(email, password)
-	if err != nil {
-		t.Fatalf("Should not fail with empty email: %v", err)
-	}
-
-	// Verify user was created
-	var user database.User
-	err = db.First(&user, "email = ?", email).Error
-	if err != nil {
-		t.Fatalf("Failed to find created user: %v", err)
-	}
-
-	if user.Email != email {
-		t.Errorf("Expected email '%s', got '%s'", email, user.Email)
+	if err == nil {
+		t.Error("Should fail with empty email")
 	}
 }

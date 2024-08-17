@@ -8,6 +8,7 @@ import (
 	"backend/internal/database"
 	"backend/internal/handlers"
 	"backend/internal/jwt"
+	"backend/internal/middleware"
 	"backend/internal/server"
 	"backend/internal/user"
 
@@ -24,6 +25,7 @@ func main() {
 		jwt.Module,
 		user.Module,
 		handlers.Module,
+		middleware.Module,
 		server.Module,
 
 		// Add lifecycle hooks

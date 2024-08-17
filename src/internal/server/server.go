@@ -7,6 +7,7 @@ import (
 
 	"backend/internal/config"
 	"backend/internal/handlers"
+	"backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
@@ -37,9 +38,40 @@ func NewServer(lc fx.Lifecycle, cfg *config.Config, handlers *handlers.Handlers)
 	// Setup routes
 	api := engine.Group("/api")
 	{
+		// Authentication endpoints (no auth required)
 		api.POST("/users", handlers.RegisterUser)
 		api.POST("/token", handlers.Login)
 		api.POST("/refresh", handlers.RefreshToken)
+		api.POST("/token/verify", handlers.VerifyToken)
+
+		// User statistics (no auth required)
+		api.GET("/users", handlers.GetUserStatistics)
+
+		// Password reset endpoints (no auth required)
+		api.POST("/users/reset-password", handlers.RequestPasswordReset)
+		api.POST("/users/send-password", handlers.SetNewPassword)
+
+		// Protected routes (require JWT authentication)
+		protected := api.Group("")
+		protected.Use(middleware.AuthMiddleware(handlers.GetJWTService()))
+		{
+			// User management
+			protected.POST("/users/deactivate", handlers.DeactivateUser)
+			protected.GET("/users/:user_id", handlers.GetUserDetails)
+			protected.PUT("/users/:user_id", handlers.UpdateUserDetails)
+			protected.DELETE("/users/:user_id", handlers.DeleteUser)
+
+			// Items management
+			protected.GET("/items", handlers.GetItems)
+			protected.GET("/items/:item_id", handlers.GetItem)
+			protected.POST("/items", handlers.CreateItem)
+			protected.PATCH("/items/:item_id", handlers.UpdateItem)
+			protected.DELETE("/items/:item_id", handlers.DeleteItem)
+
+			// Tags management
+			protected.GET("/tags", handlers.GetTags)
+			protected.POST("/tags", handlers.CreateTag)
+		}
 	}
 
 	server := &Server{

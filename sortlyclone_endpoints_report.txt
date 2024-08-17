@@ -1,0 +1,310 @@
+================================================================================
+                           SORTLYCLONE API ENDPOINTS REPORT
+================================================================================
+
+Base URL: /api/
+
+================================================================================
+                                AUTHENTICATION
+================================================================================
+
+The API uses JWT authentication with the following endpoints (provided by ninja_jwt):
+
+POST /api/token/                    - Get JWT token
+POST /api/token/refresh/            - Refresh JWT token
+POST /api/token/verify/             - Verify JWT token
+
+Authentication Header: Authorization: Bearer <token>
+
+================================================================================
+                                   ITEMS ENDPOINTS
+================================================================================
+
+Base Path: /api/items/
+
+1. GET /api/items/
+   Description: Get all items for the authenticated user
+   Authentication: Required (JWT)
+   Query Parameters:
+     - name (optional): Filter items by name (contains search)
+   Response: List[ItemOutSerializer]
+   Pagination: Yes
+   
+   Response Schema (ItemOutSerializer):
+   {
+     "name": "string",
+     "description": "string", 
+     "id": "integer",
+     "backpack_id": "string",
+     "parent": "ItemSerializer (optional)",
+     "tags": "List[TagOutSerializer]"
+   }
+
+2. GET /api/items/{item_id}
+   Description: Get a specific item by ID
+   Authentication: Required (JWT)
+   Path Parameters:
+     - item_id: integer
+   Response: ItemOutSerializer
+   
+   Response Schema (ItemOutSerializer):
+   {
+     "name": "string",
+     "description": "string",
+     "id": "integer", 
+     "backpack_id": "string",
+     "parent": "ItemSerializer (optional)",
+     "tags": "List[TagOutSerializer]"
+   }
+
+3. POST /api/items/
+   Description: Create a new item
+   Authentication: Required (JWT)
+   Request Body: ItemSerializer
+   Response: ItemOutSerializer
+   
+   Request Schema (ItemSerializer):
+   {
+     "name": "string",
+     "description": "string",
+     "id": "integer"
+   }
+   
+   Response Schema (ItemOutSerializer):
+   {
+     "name": "string",
+     "description": "string",
+     "id": "integer",
+     "backpack_id": "string",
+     "parent": "ItemSerializer (optional)",
+     "tags": "List[TagOutSerializer]"
+   }
+
+4. PATCH /api/items/{item_id}
+   Description: Update an existing item
+   Authentication: Required (JWT)
+   Path Parameters:
+     - item_id: integer
+   Request Body: ItemUpdateSerializer
+   Response: ItemOutSerializer
+   
+   Request Schema (ItemUpdateSerializer):
+   {
+     "name": "string",
+     "description": "string",
+     "parent": "integer (optional)",
+     "tags": "List[TagAddSerializer] (optional)"
+   }
+   
+   Response Schema (ItemOutSerializer):
+   {
+     "name": "string",
+     "description": "string",
+     "id": "integer",
+     "backpack_id": "string",
+     "parent": "ItemSerializer (optional)",
+     "tags": "List[TagOutSerializer]"
+   }
+
+5. DELETE /api/items/{item_id}
+   Description: Delete an item
+   Authentication: Required (JWT)
+   Path Parameters:
+     - item_id: integer
+   Response: 204 No Content
+
+================================================================================
+                                   USERS ENDPOINTS
+================================================================================
+
+Base Path: /api/users/
+
+1. GET /api/users/
+   Description: Get user statistics
+   Authentication: Not required
+   Response: {"total": 4}
+
+2. POST /api/users/
+   Description: Create a new user account
+   Authentication: Not required
+   Request Body: UserCreateSerializer
+   Response: {"user_id": "integer"}
+   
+   Request Schema (UserCreateSerializer):
+   {
+     "username": "string",
+     "password": "string",
+     "email": "string"
+   }
+
+3. POST /api/users/reset-password
+   Description: Request password reset
+   Authentication: Not required
+   Request Body: UserLoginSerializer
+   Response: 200 OK
+   
+   Request Schema (UserLoginSerializer):
+   {
+     "username": "string"
+   }
+
+4. POST /api/users/send-password
+   Description: Set new password using reset token
+   Authentication: Not required
+   Request Body: NewPasswordSerializer
+   Response: 200 OK (success) or 400 Bad Request (invalid/expired token)
+   
+   Request Schema (NewPasswordSerializer):
+   {
+     "password": "string",
+     "token": "string"
+   }
+
+5. POST /api/users/deactivate
+   Description: Deactivate user account
+   Authentication: Required (JWT)
+   Response: 200 OK
+
+6. GET /api/users/{user_id}
+   Description: Get user details (via ViewSet)
+   Authentication: Required (JWT)
+   Path Parameters:
+     - user_id: integer
+   Response: UserSerializer
+   
+   Response Schema (UserSerializer):
+   {
+     "email": "string"
+   }
+
+7. PUT /api/users/{user_id}
+   Description: Update user details (via ViewSet)
+   Authentication: Required (JWT)
+   Path Parameters:
+     - user_id: integer
+   Request Body: UserSerializer
+   Response: UserSerializer
+   
+   Request/Response Schema (UserSerializer):
+   {
+     "email": "string"
+   }
+
+8. DELETE /api/users/{user_id}
+   Description: Delete user (via ViewSet)
+   Authentication: Required (JWT)
+   Path Parameters:
+     - user_id: integer
+   Response: 204 No Content
+
+================================================================================
+                                   TAGS ENDPOINTS
+================================================================================
+
+Base Path: /api/tags/
+
+1. GET /api/tags/
+   Description: Get all tags for the user's organization
+   Authentication: Required (JWT)
+   Response: List[TagOutSerializer]
+   
+   Response Schema (TagOutSerializer):
+   {
+     "name": "string",
+     "id": "integer"
+   }
+
+2. POST /api/tags/
+   Description: Create a new tag
+   Authentication: Required (JWT)
+   Request Body: TagInSerializer
+   Response: TagOutSerializer
+   
+   Request Schema (TagInSerializer):
+   {
+     "name": "string"
+   }
+   
+   Response Schema (TagOutSerializer):
+   {
+     "name": "string",
+     "id": "integer"
+   }
+
+================================================================================
+                                   DATA MODELS
+================================================================================
+
+Item Model:
+- name: CharField(max_length=200)
+- backpack_id: CharField(max_length=20)
+- description: CharField(max_length=1000)
+- added_at: DateTimeField
+- user: ForeignKey(User)
+- parent: ForeignKey(Item, null=True, blank=True)
+
+User Model (extends AbstractUser):
+- prefix: CharField(max_length=10)
+- active_organization: ForeignKey(Organization)
+
+Tag Model:
+- name: CharField(max_length=20)
+- items: ManyToManyField(Item)
+- organization: ForeignKey(Organization)
+
+Organization Model:
+- users: ManyToManyField(User)
+
+ResetToken Model:
+- user: OneToOneField(User)
+- token: CharField(max_length=30)
+- expired_at: DateTimeField
+
+BackPackIdNextNumber Model:
+- backpack_id: CharField(max_length=20)
+- number: IntegerField
+
+================================================================================
+                                   ADDITIONAL SCHEMAS
+================================================================================
+
+TagAddSerializer:
+{
+  "id": "integer"
+}
+
+ItemSerializer (for parent references):
+{
+  "name": "string",
+  "description": "string",
+  "id": "integer"
+}
+
+================================================================================
+                                   NOTES
+================================================================================
+
+1. All authenticated endpoints require JWT token in Authorization header
+2. Items are automatically assigned a backpack_id using user prefix + sequential number
+3. Tags are organization-scoped
+4. Password reset tokens expire after 5 minutes
+5. User creation automatically creates an organization
+6. Items can have parent-child relationships
+7. Items can be tagged with multiple tags
+8. API uses Django Ninja framework with automatic schema generation
+9. Pagination is enabled for item listing
+10. All responses are JSON format
+
+================================================================================
+                                   ERROR CODES
+================================================================================
+
+200: Success
+204: No Content (for DELETE operations)
+400: Bad Request (invalid data, expired tokens)
+401: Unauthorized (missing or invalid JWT)
+403: Forbidden (insufficient permissions)
+404: Not Found (resource doesn't exist)
+500: Internal Server Error
+
+================================================================================

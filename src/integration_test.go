@@ -59,13 +59,7 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 		suite.T().Fatalf("Failed to connect to test database: %v", err)
 	}
 
-	// Auto migrate the User model
-	err = suite.db.AutoMigrate(&database.User{})
-	if err != nil {
-		suite.T().Fatalf("Failed to migrate test database: %v", err)
-	}
-
-	// Setup services
+	// Setup configuration
 	cfg := &config.Config{
 		JWT: config.JWTConfig{
 			SecretKey:            "test-secret-key",
@@ -74,9 +68,27 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 		},
 	}
 
+	// Clear any existing data and drop tables
+	suite.db.Exec("DROP TABLE IF EXISTS item_tags CASCADE")
+	suite.db.Exec("DROP TABLE IF EXISTS organization_users CASCADE")
+	suite.db.Exec("DROP TABLE IF EXISTS reset_tokens CASCADE")
+	suite.db.Exec("DROP TABLE IF EXISTS items CASCADE")
+	suite.db.Exec("DROP TABLE IF EXISTS tags CASCADE")
+	suite.db.Exec("DROP TABLE IF EXISTS users CASCADE")
+	suite.db.Exec("DROP TABLE IF EXISTS organizations CASCADE")
+	suite.db.Exec("DROP TABLE IF EXISTS back_pack_id_next_numbers CASCADE")
+
+	// Auto migrate all models for integration tests
+	err = suite.db.AutoMigrate(&database.Organization{}, &database.User{}, &database.Item{}, &database.Tag{}, &database.ResetToken{}, &database.BackPackIdNextNumber{})
+	if err != nil {
+		suite.T().Fatalf("Failed to auto-migrate test database: %v", err)
+	}
+
+	// Setup services
+
 	suite.userService = user.NewUserService(suite.db)
 	suite.jwtService = jwt.NewJWTService(cfg)
-	suite.handlers = handlers.NewHandlers(suite.userService, suite.jwtService)
+	suite.handlers = handlers.NewHandlers(suite.userService, suite.jwtService, suite.db)
 
 	// Setup router
 	gin.SetMode(gin.TestMode)
@@ -101,8 +113,14 @@ func (suite *IntegrationTestSuite) TearDownSuite() {
 
 // SetupTest runs before each test
 func (suite *IntegrationTestSuite) SetupTest() {
-	// Clear users table before each test
+	// Clear all tables before each test
+	suite.db.Exec("DELETE FROM item_tags")
+	suite.db.Exec("DELETE FROM organization_users")
+	suite.db.Exec("DELETE FROM reset_tokens")
+	suite.db.Exec("DELETE FROM items")
+	suite.db.Exec("DELETE FROM tags")
 	suite.db.Exec("DELETE FROM users")
+	suite.db.Exec("DELETE FROM organizations")
 }
 
 // TestUserRegistration tests the complete user registration flow
