@@ -17,13 +17,18 @@ services:
       DB_PASSWORD: schwiftybox_password_dev
       DB_URL: postgres://schwiftybox_user:schwiftybox_password_dev@postgres:5432/schwiftybox?sslmode=disable
       GIN_MODE: debug
+      SKIP_E2E: "true"
     ports:
       - "8080:8080"
     volumes:
-      - ./src:/app
+      - ./src:/app/src
       - ./migrations:/app/migrations
       - ./scripts:/app/scripts
-    command: ["go", "run", "."]
+      - go-cache:/go
+    command: ["./schwiftybox"]
     restart: "no"
+
+volumes:
+  go-cache:
 
 

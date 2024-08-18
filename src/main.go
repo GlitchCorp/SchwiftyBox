@@ -16,6 +16,8 @@ import (
 )
 
 func main() {
+	log.Println("Starting SchwiftyBox application...")
+
 	app := fx.New(
 		// Provide configuration
 		fx.Provide(config.NewConfig),
