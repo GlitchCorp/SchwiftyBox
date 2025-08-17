@@ -1,7 +1,8 @@
 FROM golang:1.23-alpine
 
-# Install git and ca-certificates
-RUN apk add --no-cache git ca-certificates
+# Install git, ca-certificates, and migrate tool
+RUN apk add --no-cache git ca-certificates && \
+    go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Set working directory
 WORKDIR /app

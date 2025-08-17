@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Database migration script for schwiftybox
 # Usage: ./scripts/migrate.sh [up|down|version|create]
