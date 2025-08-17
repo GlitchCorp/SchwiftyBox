@@ -1,0 +1,53 @@
+
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: schwiftybox-postgres
+    environment:
+      POSTGRES_DB: schwiftybox
+      POSTGRES_USER: schwiftybox_user
+      POSTGRES_PASSWORD: schwiftybox_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U schwiftybox_user -d schwiftybox"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - schwiftybox-network
+
+  # Go Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: schwiftybox-app
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: schwiftybox_user
+      DB_PASSWORD: schwiftybox_password
+      DB_NAME: schwiftybox
+      DB_URL: postgres://schwiftybox_user:schwiftybox_password@postgres:5432/schwiftybox?sslmode=disable
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/app/migrations
+    networks:
+      - schwiftybox-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  schwiftybox-network:
+    driver: bridge

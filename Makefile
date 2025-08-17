@@ -93,6 +93,39 @@ migrate-force: migrate-install
 dev-setup: deps migrate-up
 	@echo "Development environment is ready!"
 
+# Docker Compose commands
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down
+
+docker-build:
+	docker compose build
+
+docker-logs:
+	docker compose logs -f
+
+docker-restart:
+	docker compose restart
+
+# Development with Docker
+docker-dev:
+	docker compose -f docker-compose.yml -f docker-compose.override.yml up
+
+docker-dev-down:
+	docker compose -f docker-compose.yml -f docker-compose.override.yml down
+
+# Database commands with Docker
+docker-migrate-up:
+	docker-compose exec app /app/scripts/migrate.sh up
+
+docker-migrate-down:
+	docker-compose exec app /app/scripts/migrate.sh down
+
+docker-migrate-version:
+	docker-compose exec app /app/scripts/migrate.sh version
+
 # Show help
 help:
 	@echo "Available commands:"
@@ -108,6 +141,18 @@ help:
 	@echo "  migrate-create - Create new migration (requires NAME parameter)"
 	@echo "  migrate-force  - Force migration to specific version (requires VERSION parameter)"
 	@echo "  dev-setup      - Setup development environment"
+	@echo ""
+	@echo "Docker commands:"
+	@echo "  docker-up      - Start all services"
+	@echo "  docker-down    - Stop all services"
+	@echo "  docker-build   - Build Docker images"
+	@echo "  docker-logs    - Show logs"
+	@echo "  docker-restart - Restart services"
+	@echo "  docker-dev     - Start development environment"
+	@echo "  docker-dev-down - Stop development environment"
+	@echo "  docker-migrate-up - Run migrations in Docker"
+	@echo "  docker-migrate-down - Rollback migrations in Docker"
+	@echo "  docker-migrate-version - Show migration version in Docker"
 	@echo "  help           - Show this help"
 	@echo ""
 	@echo "Environment variables:"

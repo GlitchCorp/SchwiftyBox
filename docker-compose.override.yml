@@ -1,0 +1,29 @@
+
+
+services:
+  # Development overrides for PostgreSQL
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: schwiftybox_password_dev
+    ports:
+      - "5432:5432"
+
+  # Development overrides for App
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      DB_PASSWORD: schwiftybox_password_dev
+      DB_URL: postgres://schwiftybox_user:schwiftybox_password_dev@postgres:5432/schwiftybox?sslmode=disable
+      GIN_MODE: debug
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src:/app
+      - ./migrations:/app/migrations
+      - ./scripts:/app/scripts
+    command: ["go", "run", "."]
+    restart: "no"
+
+

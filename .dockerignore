@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Build artifacts
+schwiftybox
+schwiftybox_unix
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Documentation
+README.md
+docs/
+
+# Scripts (except migrations)
+scripts/
+!scripts/migrate.sh
+
+# Makefile
+Makefile
