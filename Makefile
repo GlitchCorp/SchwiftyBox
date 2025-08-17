@@ -53,6 +53,15 @@ test-race:
 test-package:
 	cd $(SRC_DIR) && $(GOTEST) -v ./internal/$(PACKAGE)
 
+# Run integration tests
+test-integration:
+	chmod +x ./scripts/run_integration_tests.sh
+	./scripts/run_integration_tests.sh
+
+# Run end-to-end tests
+test-e2e:
+	cd $(SRC_DIR) && $(GOTEST) -v -run TestE2ETestSuite ./e2e_test.go
+
 # Download dependencies
 deps:
 	cd $(SRC_DIR) && $(GOMOD) download
@@ -148,6 +157,8 @@ help:
 	@echo "  test-coverage  - Run tests with coverage report"
 	@echo "  test-race      - Run tests with race detection"
 	@echo "  test-package   - Run tests for specific package (requires PACKAGE parameter)"
+	@echo "  test-integration - Run integration tests with real database"
+	@echo "  test-e2e        - Run end-to-end tests with real HTTP server"
 	@echo "  deps           - Download dependencies"
 	@echo "  run            - Run the application"
 	@echo "  build-linux    - Build for Linux"
