@@ -44,6 +44,13 @@ test:
 test-coverage:
 	cd $(SRC_DIR) && $(GOTEST) -v -coverprofile=coverage.out ./...
 	cd $(SRC_DIR) && $(GOCMD) tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: src/coverage.html"
+	@cd $(SRC_DIR) && $(GOCMD) tool cover -func=coverage.out | tail -1
+
+# Show test coverage percentage
+test-coverage-percent:
+	cd $(SRC_DIR) && $(GOTEST) -coverprofile=coverage.out ./... > /dev/null 2>&1
+	@cd $(SRC_DIR) && $(GOCMD) tool cover -func=coverage.out | tail -1
 
 # Run tests with race detection
 test-race:
@@ -155,6 +162,7 @@ help:
 	@echo "  clean          - Clean build files"
 	@echo "  test           - Run tests"
 	@echo "  test-coverage  - Run tests with coverage report"
+	@echo "  test-coverage-percent - Show test coverage percentage"
 	@echo "  test-race      - Run tests with race detection"
 	@echo "  test-package   - Run tests for specific package (requires PACKAGE parameter)"
 	@echo "  test-integration - Run integration tests with real database"

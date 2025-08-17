@@ -1,5 +1,9 @@
 # SchwiftyBox
 
+[![Test Coverage](https://img.shields.io/badge/test%20coverage-44.8%25-brightgreen)](https://github.com/your-username/schwiftybox)
+[![Go Version](https://img.shields.io/badge/Go-1.23+-blue)](https://golang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
 A modern, secure user authentication API built with Go, featuring JWT tokens, PostgreSQL database, and comprehensive testing.
 
 ## Features
@@ -218,7 +222,16 @@ make dev-setup      # Setup development environment
 
 ## Testing
 
-The project includes comprehensive testing at multiple levels:
+The project includes comprehensive testing at multiple levels with **44.8% overall test coverage**:
+
+### Coverage by Package
+- `config`: 100.0% - Complete configuration testing
+- `user`: 85.7% - User service functionality
+- `jwt`: 81.8% - JWT token management
+- `handlers`: 58.7% - HTTP request handlers
+- `migrations`: 17.2% - Database migrations
+- `database`: 0.0% - Database connection (needs tests)
+- `server`: 0.0% - HTTP server (needs tests)
 
 ### Unit Tests
 - Test individual components in isolation
