@@ -39,6 +39,11 @@ func main() {
 				},
 			})
 		}),
+
+		// Ensure server is started
+		fx.Invoke(func(s *server.Server) {
+			log.Println("Server dependency injected and will be started")
+		}),
 	)
 
 	app.Run()

@@ -40,6 +40,19 @@ clean:
 test:
 	cd $(SRC_DIR) && $(GOTEST) -v ./...
 
+# Run tests with coverage
+test-coverage:
+	cd $(SRC_DIR) && $(GOTEST) -v -coverprofile=coverage.out ./...
+	cd $(SRC_DIR) && $(GOCMD) tool cover -html=coverage.out -o coverage.html
+
+# Run tests with race detection
+test-race:
+	cd $(SRC_DIR) && $(GOTEST) -v -race ./...
+
+# Run tests for specific package
+test-package:
+	cd $(SRC_DIR) && $(GOTEST) -v ./internal/$(PACKAGE)
+
 # Download dependencies
 deps:
 	cd $(SRC_DIR) && $(GOMOD) download
@@ -132,6 +145,9 @@ help:
 	@echo "  build          - Build the binary"
 	@echo "  clean          - Clean build files"
 	@echo "  test           - Run tests"
+	@echo "  test-coverage  - Run tests with coverage report"
+	@echo "  test-race      - Run tests with race detection"
+	@echo "  test-package   - Run tests for specific package (requires PACKAGE parameter)"
 	@echo "  deps           - Download dependencies"
 	@echo "  run            - Run the application"
 	@echo "  build-linux    - Build for Linux"
