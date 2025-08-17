@@ -1,6 +1,6 @@
 # SchwiftyBox
 
-[![Tests](https://github.com/GlitchCorp/schwiftybox/workflows/Tests/badge.svg)](https://github.com/GlitchCorp/schwiftybox/actions)
+[![Tests](https://github.com/GlitchCorp/schwiftybox/workflows/Run%20tests%20and%20upload%20coverage/badge.svg)](https://github.com/GlitchCorp/schwiftybox/actions)
 [![Test Coverage](https://codecov.io/gh/GlitchCorp/schwiftybox/branch/master/graph/badge.svg)](https://codecov.io/gh/GlitchCorp/schwiftybox)
 [![Go Version](https://img.shields.io/badge/Go-1.23+-blue)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
