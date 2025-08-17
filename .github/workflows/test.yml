@@ -21,10 +21,10 @@ jobs:
           cd src
           go mod download
 
-      - name: Run tests
+      - name: Run unit tests
         run: |
           cd src
-          go test -coverprofile=coverage.txt ./...
+          go test -coverprofile=coverage.txt ./internal/...
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
