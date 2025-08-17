@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"log"
+	"time"
 
 	"backend/internal/config"
 
@@ -18,8 +19,10 @@ var Module = fx.Module("database",
 
 // User represents a user in the database
 type User struct {
-	Email    string `json:"email" gorm:"primaryKey"`
-	Password string `json:"password"`
+	Email     string    `json:"email" gorm:"primaryKey"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
 
 // NewDatabase creates a new database connection
@@ -29,10 +32,8 @@ func NewDatabase(lc fx.Lifecycle, cfg *config.Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	// Auto-migrate the schema
-	if err := db.AutoMigrate(&User{}); err != nil {
-		return nil, err
-	}
+	// Note: Migrations are now handled by the migrations package
+	// Auto-migration is disabled for production use
 
 	lc.Append(fx.Hook{
 		OnStart: func(context.Context) error {
