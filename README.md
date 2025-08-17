@@ -1,6 +1,7 @@
 # SchwiftyBox
 
-[![Test Coverage](https://img.shields.io/badge/test%20coverage-44.8%25-brightgreen)](https://github.com/your-username/schwiftybox)
+[![Tests](https://github.com/your-username/schwiftybox/workflows/Tests/badge.svg)](https://github.com/your-username/schwiftybox/actions)
+[![Test Coverage](https://codecov.io/gh/your-username/schwiftybox/branch/master/graph/badge.svg)](https://codecov.io/gh/your-username/schwiftybox)
 [![Go Version](https://img.shields.io/badge/Go-1.23+-blue)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
@@ -307,6 +308,23 @@ make migrate-create NAME=add_user_profile
 - Email format validation
 - Password length requirements
 - SQL injection protection via GORM
+
+## Continuous Integration
+
+### GitHub Actions
+The project includes a GitHub Actions workflow (`.github/workflows/test.yml`) that:
+- Runs unit and integration tests
+- Generates coverage reports
+- Uploads coverage to Codecov
+
+### Codecov Setup
+To enable dynamic coverage badges:
+1. Connect your repository to [Codecov](https://codecov.io)
+2. Update the badge URL in README.md with your actual repository name
+3. The badge will automatically update with each commit
+
+### Manual Setup
+If you prefer to set up manually, create `.github/workflows/test.yml` with the provided configuration.
 
 ## Deployment
 
