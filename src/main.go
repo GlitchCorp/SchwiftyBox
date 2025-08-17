@@ -1,0 +1,45 @@
+package main
+
+import (
+	"context"
+	"log"
+
+	"backend/internal/config"
+	"backend/internal/database"
+	"backend/internal/handlers"
+	"backend/internal/jwt"
+	"backend/internal/server"
+	"backend/internal/user"
+
+	"go.uber.org/fx"
+)
+
+func main() {
+	app := fx.New(
+		// Provide configuration
+		fx.Provide(config.NewConfig),
+
+		// Include all modules
+		database.Module,
+		jwt.Module,
+		user.Module,
+		handlers.Module,
+		server.Module,
+
+		// Add lifecycle hooks
+		fx.Invoke(func(lc fx.Lifecycle) {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					log.Println("Application started successfully")
+					return nil
+				},
+				OnStop: func(ctx context.Context) error {
+					log.Println("Application stopped")
+					return nil
+				},
+			})
+		}),
+	)
+
+	app.Run()
+}
