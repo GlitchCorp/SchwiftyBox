@@ -22,13 +22,12 @@ services:
       - "8080:8080"
     volumes:
       - ./src:/app/src
+      - ./.air.toml:/app/.air.toml
       - ./migrations:/app/migrations
       - ./scripts:/app/scripts
-      - go-cache:/go
-    command: ["./schwiftybox"]
+    command: ["/go/bin/air"]
     restart: "no"
 
-volumes:
-  go-cache:
+
 
 

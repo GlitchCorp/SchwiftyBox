@@ -130,7 +130,10 @@ docker-down:
 	docker compose down
 
 docker-build:
-	docker compose build
+	DOCKER_BUILDKIT=1 docker compose build
+
+docker-build-no-cache:
+	DOCKER_BUILDKIT=1 docker compose build --no-cache
 
 docker-logs:
 	docker compose logs -f
@@ -140,10 +143,13 @@ docker-restart:
 
 # Development with Docker
 docker-dev:
-	docker compose -f docker-compose.yml -f docker-compose.override.yml up
+	DOCKER_BUILDKIT=1 docker compose -f docker-compose.yml -f docker-compose.override.yml up
 
 docker-dev-down:
 	docker compose -f docker-compose.yml -f docker-compose.override.yml down
+
+docker-dev-logs:
+	docker compose -f docker-compose.yml -f docker-compose.override.yml logs -f app
 
 # Database commands with Docker
 docker-migrate-up:

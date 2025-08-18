@@ -11,6 +11,13 @@ docker-compose.yml
 schwiftybox
 schwiftybox_unix
 *.exe
+src/schwiftybox
+src/backend
+src/coverage.*
+src/*.db
+src/*.sqlite*
+src/tmp/
+src/build-errors.log
 
 # IDE
 .vscode/

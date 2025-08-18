@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -115,13 +116,20 @@ func (h *Handlers) RegisterUser(c *gin.Context) {
 
 // Login handles user login
 func (h *Handlers) Login(c *gin.Context) {
+	log.Printf("Login attempt - Content-Type: %s", c.GetHeader("Content-Type"))
+
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("Login validation error: %v", err)
+		log.Printf("Request body: %+v", req)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
 		return
 	}
 
+	log.Printf("Login request for email: %s", req.Email)
+
 	if err := h.userService.ValidateUser(req.Email, req.Password); err != nil {
+		log.Printf("User validation error: %v", err)
 		if errors.Is(err, user.ErrInvalidCredentials) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
@@ -130,12 +138,16 @@ func (h *Handlers) Login(c *gin.Context) {
 		return
 	}
 
+	log.Printf("User validation successful for: %s", req.Email)
+
 	tokens, err := h.jwtService.GenerateTokenPair(req.Email)
 	if err != nil {
+		log.Printf("Token generation error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate tokens"})
 		return
 	}
 
+	log.Printf("Login successful for: %s", req.Email)
 	c.JSON(http.StatusOK, tokens)
 }
 
@@ -171,6 +183,35 @@ func (h *Handlers) RefreshToken(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": newToken})
+}
+
+// TokenPair handles generating a new token pair for a user
+func (h *Handlers) TokenPair(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
+		return
+	}
+
+	// Verify user exists
+	if _, err := h.userService.GetUser(req.Email); err != nil {
+		if errors.Is(err, user.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate user"})
+		return
+	}
+
+	tokens, err := h.jwtService.GenerateTokenPair(req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate tokens"})
+		return
+	}
+
+	c.JSON(http.StatusOK, tokens)
 }
 
 // VerifyToken handles token verification
