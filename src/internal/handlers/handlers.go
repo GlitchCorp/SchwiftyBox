@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"bytes"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -140,6 +142,7 @@ func (h *Handlers) Login(c *gin.Context) {
 
 	log.Printf("User validation successful for: %s", req.Email)
 
+	log.Printf("Calling GenerateTokenPair for email: %s", req.Email)
 	tokens, err := h.jwtService.GenerateTokenPair(req.Email)
 	if err != nil {
 		log.Printf("Token generation error: %v", err)
@@ -148,41 +151,82 @@ func (h *Handlers) Login(c *gin.Context) {
 	}
 
 	log.Printf("Login successful for: %s", req.Email)
+	log.Printf("Generated tokens: %+v", tokens)
 	c.JSON(http.StatusOK, tokens)
 }
 
 // RefreshToken handles token refresh
 func (h *Handlers) RefreshToken(c *gin.Context) {
+	log.Printf("=== REFRESH TOKEN REQUEST START ===")
+	log.Printf("Method: %s", c.Request.Method)
+	log.Printf("URL: %s", c.Request.URL.String())
+	log.Printf("Content-Type: %s", c.GetHeader("Content-Type"))
+	log.Printf("User-Agent: %s", c.GetHeader("User-Agent"))
+
+	// Log raw body for debugging
+	body, err := c.GetRawData()
+	if err != nil {
+		log.Printf("Failed to read raw body: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+		return
+	}
+	log.Printf("Raw body: %s", string(body))
+
+	// Restore body for binding
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
 	var req RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("JSON binding error: %v", err)
+		log.Printf("Request struct: %+v", req)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
 		return
 	}
 
-	email, err := h.jwtService.ValidateToken(req.RefreshToken)
+	log.Printf("Parsed request: %+v", req)
+	log.Printf("Refresh token length: %d", len(req.RefreshToken))
+	if len(req.RefreshToken) > 20 {
+		log.Printf("Refresh token preview: %s...", req.RefreshToken[:20])
+	} else {
+		log.Printf("Refresh token: %s", req.RefreshToken)
+	}
+
+	// Validate refresh token
+	email, err := h.jwtService.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
+		log.Printf("Refresh token validation failed: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
 		return
 	}
 
+	log.Printf("Refresh token validated for user: %s", email)
+
 	// Verify user still exists
 	if _, err := h.userService.GetUser(email); err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {
+			log.Printf("User not found during refresh: %s", email)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 			return
 		}
+		log.Printf("Failed to validate user during refresh: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate user"})
 		return
 	}
 
-	// Generate new access token
-	newToken, err := h.jwtService.GenerateToken(email, h.jwtService.GetAccessTokenDuration())
+	log.Printf("User verified: %s", email)
+
+	// Generate new token pair (both access and refresh tokens)
+	tokens, err := h.jwtService.GenerateTokenPair(email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		log.Printf("Failed to generate new tokens: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate tokens"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": newToken})
+	log.Printf("New tokens generated successfully")
+	log.Printf("=== REFRESH TOKEN REQUEST END ===")
+
+	c.JSON(http.StatusOK, tokens)
 }
 
 // TokenPair handles generating a new token pair for a user
@@ -400,12 +444,14 @@ func (h *Handlers) DeleteUser(c *gin.Context) {
 // GetItems handles getting all items for the authenticated user
 func (h *Handlers) GetItems(c *gin.Context) {
 	userEmail, exists := c.Get("user_email")
+	log.Printf("GetItems called for user: %s", userEmail)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
 
 	nameFilter := c.Query("name")
+	log.Printf("Name filter: %s", nameFilter)
 
 	var items []database.Item
 	query := h.db.Where("user_email = ?", userEmail).Preload("Tags").Preload("Parent")
@@ -416,11 +462,14 @@ func (h *Handlers) GetItems(c *gin.Context) {
 	}
 
 	if err := query.Find(&items).Error; err != nil {
+		log.Printf("Failed to get items: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get items"})
 		return
 	}
 
-	c.JSON(http.StatusOK, items)
+	log.Printf("Found %d items 1", len(items))
+	log.Printf("Returning items in object with key 'items'")
+	c.JSON(http.StatusOK, gin.H{"items": items})
 }
 
 // GetItem handles getting a specific item by ID

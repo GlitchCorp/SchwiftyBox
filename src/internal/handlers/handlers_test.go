@@ -37,8 +37,8 @@ func setupTestHandlers(t *testing.T) *Handlers {
 	cfg := &config.Config{
 		JWT: config.JWTConfig{
 			SecretKey:            "test-secret-key",
-			AccessTokenDuration:  15,
-			RefreshTokenDuration: 24,
+			AccessTokenDuration:  time.Minute * 15,
+			RefreshTokenDuration: time.Hour * 24,
 		},
 	}
 
@@ -341,17 +341,17 @@ func TestRefreshToken_UserNotFound(t *testing.T) {
 	c2.Request = httptest.NewRequest("POST", "/login", bytes.NewBuffer(loginJson))
 	c2.Request.Header.Set("Content-Type", "application/json")
 	handlers.Login(c2)
-	
+
 	// Debug: print status code
 	t.Logf("Login status: %d", w2.Code)
 	t.Logf("Login body: %s", w2.Body.String())
 
 	var loginResponse map[string]interface{}
 	json.Unmarshal(w2.Body.Bytes(), &loginResponse)
-	
+
 	// Debug: print response
 	t.Logf("Login response: %+v", loginResponse)
-	
+
 	refreshToken, ok := loginResponse["refresh_token"].(string)
 	if !ok {
 		t.Fatalf("Failed to get refresh token from response: %+v", loginResponse)
@@ -600,7 +600,7 @@ func createAuthenticatedRequest(handlers *Handlers, method, path string, body []
 	// Create a user and get token
 	user := RegisterRequest{Email: "auth@example.com", Password: "password123"}
 	userJson, _ := json.Marshal(user)
-	
+
 	c, w := setupGinContext()
 	c.Request = httptest.NewRequest("POST", "/register", bytes.NewBuffer(userJson))
 	c.Request.Header.Set("Content-Type", "application/json")
@@ -625,10 +625,10 @@ func createAuthenticatedRequest(handlers *Handlers, method, path string, body []
 	c.Request = httptest.NewRequest(method, path, bytes.NewBuffer(body))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Request.Header.Set("Authorization", "Bearer "+token)
-	
+
 	// Set user email in context (simulating middleware)
 	c.Set("user_email", "auth@example.com")
-	
+
 	return c, w
 }
 
@@ -649,7 +649,7 @@ func TestGetItems_Success(t *testing.T) {
 
 func TestGetItems_WithNameFilter(t *testing.T) {
 	handlers := setupTestHandlers(t)
-	
+
 	// Create an item first
 	c, w := createAuthenticatedRequest(handlers, "POST", "/items", []byte(`{"name":"Test Item","description":"Test Description"}`))
 	handlers.CreateItem(c)
@@ -700,11 +700,11 @@ func TestCreateItem_InvalidInput(t *testing.T) {
 
 func TestGetItem_Success(t *testing.T) {
 	handlers := setupTestHandlers(t)
-	
+
 	// Create an item first
 	c, w := createAuthenticatedRequest(handlers, "POST", "/items", []byte(`{"name":"Test Item","description":"Test Description"}`))
 	handlers.CreateItem(c)
-	
+
 	var createdItem database.Item
 	json.Unmarshal(w.Body.Bytes(), &createdItem)
 
@@ -739,11 +739,11 @@ func TestGetItem_NotFound(t *testing.T) {
 
 func TestUpdateItem_Success(t *testing.T) {
 	handlers := setupTestHandlers(t)
-	
+
 	// Create an item first
 	c, w := createAuthenticatedRequest(handlers, "POST", "/items", []byte(`{"name":"Original Name","description":"Original Description"}`))
 	handlers.CreateItem(c)
-	
+
 	var createdItem database.Item
 	json.Unmarshal(w.Body.Bytes(), &createdItem)
 
@@ -763,11 +763,11 @@ func TestUpdateItem_Success(t *testing.T) {
 
 func TestDeleteItem_Success(t *testing.T) {
 	handlers := setupTestHandlers(t)
-	
+
 	// Create an item first
 	c, w := createAuthenticatedRequest(handlers, "POST", "/items", []byte(`{"name":"Test Item","description":"Test Description"}`))
 	handlers.CreateItem(c)
-	
+
 	var createdItem database.Item
 	json.Unmarshal(w.Body.Bytes(), &createdItem)
 

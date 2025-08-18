@@ -111,7 +111,7 @@ func TestGenerateTokenPair(t *testing.T) {
 		t.Errorf("Expected email '%s', got '%s'", email, accessEmail)
 	}
 
-	refreshEmail, err := service.ValidateToken(tokenPair.RefreshToken)
+	refreshEmail, err := service.ValidateRefreshToken(tokenPair.RefreshToken)
 	if err != nil {
 		t.Fatalf("Failed to validate refresh token: %v", err)
 	}
